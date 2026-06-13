@@ -1,0 +1,38 @@
+name: Synk Code Quarantine
+description: Scan PR diffs for architecture policy violations and post inline fix suggestions as review comments.
+author: Synk
+
+branding:
+  icon: shield
+  color: purple
+
+inputs:
+  repository_id:
+    description: Your repository ID in Synk (from the Synk dashboard).
+    required: true
+  access_token:
+    description: Synk API key (ACCESS_TOKEN). Store this in GitHub Secrets.
+    required: true
+  secret_token:
+    description: Synk secret key (SECRET_TOKEN). Store this in GitHub Secrets.
+    required: true
+  synk_api_url:
+    description: Synk backend API URL (e.g. https://api.synk.dev).
+    required: true
+  github_token:
+    description: GitHub token used to post review comments. Defaults to the built-in GITHUB_TOKEN.
+    required: false
+    default: ${{ github.token }}
+
+runs:
+  using: docker
+  image: Dockerfile
+  env:
+    REPOSITORY_ID: ${{ inputs.repository_id }}
+    ACCESS_TOKEN: ${{ inputs.access_token }}
+    SECRET_TOKEN: ${{ inputs.secret_token }}
+    SYNK_API_URL: ${{ inputs.synk_api_url }}
+    GITHUB_TOKEN: ${{ inputs.github_token }}
+    REPO_SLUG: ${{ github.repository }}
+    SYNK_COMMIT_SHA: ${{ github.event.pull_request.head.sha }}
+    PR_NUMBER: ${{ github.event.pull_request.number }}

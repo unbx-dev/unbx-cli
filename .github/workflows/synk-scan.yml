@@ -1,0 +1,22 @@
+name: Synk Code Scan
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  pull-requests: write  # required to post review comments
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Synk Code Quarantine
+        uses: your-org/synk-cli@v1   # replace with your published action
+        with:
+          repository_id: ${{ secrets.SYNK_REPOSITORY_ID }}
+          access_token:  ${{ secrets.SYNK_ACCESS_TOKEN }}
+          secret_token:  ${{ secrets.SYNK_SECRET_TOKEN }}
+          synk_api_url: ${{ secrets.SYNK_API_URL }}

@@ -1,4 +1,4 @@
-# unbx CLI — GitHub Action
+# Unbx CLI — GitHub Action
 
 A GitHub Action that scans PR diffs for architecture policy violations and posts inline fix suggestions as review comments.
 

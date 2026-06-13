@@ -16,7 +16,5 @@ jobs:
       - name: Synk Code Quarantine
         uses: your-org/synk-cli@v1   # replace with your published action
         with:
-          repository_id: ${{ secrets.SYNK_REPOSITORY_ID }}
-          access_token:  ${{ secrets.SYNK_ACCESS_TOKEN }}
-          secret_token:  ${{ secrets.SYNK_SECRET_TOKEN }}
-          synk_api_url: ${{ secrets.SYNK_API_URL }}
+          access_token: ${{ secrets.SYNK_ACCESS_TOKEN }}
+          secret_token: ${{ secrets.SYNK_SECRET_TOKEN }}

@@ -23,8 +23,8 @@ func main() {
 
 	ctx := context.Background()
 
-	if repositoryID == "" || accessToken == "" || secretToken == "" {
-		log.Fatal("REPOSITORY_ID, ACCESS_TOKEN, SECRET_TOKEN are required")
+	if accessToken == "" || secretToken == "" {
+		log.Fatal("ACCESS_TOKEN and SECRET_TOKEN are required")
 	}
 
 	changeFiles, err := client.GetPRFiles(ctx, githubToken, repoSlug, prNumber)

@@ -18,17 +18,15 @@ Go to **Settings > Secrets and variables > Actions** in your GitHub repository a
 
 | Secret | Description |
 |---|---|
-| `UNBX_REPOSITORY_ID` | Your repository ID from the unbx dashboard |
-| `UNBX_ACCESS_TOKEN` | Your unbx API key |
-| `UNBX_SECRET_TOKEN` | Your unbx secret key |
-| `UNBX_API_URL` | unbx backend API URL (e.g. `https://api.unbx.dev`) |
+| `SYNK_ACCESS_TOKEN` | Your Synk API key |
+| `SYNK_SECRET_TOKEN` | Your Synk secret key |
 
 ### 2. Add a workflow
 
-Create `.github/workflows/unbx-scan.yml`:
+Create `.github/workflows/synk-scan.yml`:
 
 ```yaml
-name: unbx Code Scan
+name: Synk Code Scan
 
 on:
   pull_request:
@@ -43,23 +41,19 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: unbx Code Scan
-        uses: your-org/unbx-cli@v1
+      - name: Synk Code Scan
+        uses: your-org/synk-cli@v1
         with:
-          repository_id: ${{ secrets.UNBX_REPOSITORY_ID }}
-          access_token:  ${{ secrets.UNBX_ACCESS_TOKEN }}
-          secret_token:  ${{ secrets.UNBX_SECRET_TOKEN }}
-          synk_api_url:  ${{ secrets.UNBX_API_URL }}
+          access_token: ${{ secrets.SYNK_ACCESS_TOKEN }}
+          secret_token: ${{ secrets.SYNK_SECRET_TOKEN }}
 ```
 
 ## Action inputs
 
 | Input | Required | Description |
 |---|---|---|
-| `repository_id` | ✅ | Repository ID from the unbx dashboard |
-| `access_token` | ✅ | unbx API key |
-| `secret_token` | ✅ | unbx secret key |
-| `synk_api_url` | ✅ | unbx backend API URL |
+| `access_token` | ✅ | Synk API key |
+| `secret_token` | ✅ | Synk secret key |
 | `github_token` | | GitHub token for posting review comments (defaults to `github.token`) |
 
 ## Supported languages
@@ -86,10 +80,9 @@ Files with unsupported extensions are skipped.
 Set the required environment variables and run directly:
 
 ```bash
-export REPOSITORY_ID=your-repository-id
+export REPOSITORY_ID=your-github-repository-id  # numeric ID from github.com/owner/repo/settings
 export ACCESS_TOKEN=your-access-token
 export SECRET_TOKEN=your-secret-token
-export SYNK_API_URL=https://api.unbx.dev
 export GITHUB_TOKEN=your-github-token
 export REPO_SLUG=owner/repo
 export PR_NUMBER=123

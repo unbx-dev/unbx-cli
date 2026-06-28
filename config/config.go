@@ -1,3 +1,3 @@
 package config
 
-const SynkAPIURL = "https://api.synk.dev"
+const UnbxAPIURL = "https://qa.api.unbx.dev"

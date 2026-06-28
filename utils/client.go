@@ -8,21 +8,21 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	"synk/models"
+	"unbx/models"
 	"net/http"
 	"strconv"
 	"time"
 )
 
-type SynkClient struct {
+type UnbxClient struct {
 	baseURL    string
 	apiKey     string
 	secretKey  string
 	httpClient *http.Client
 }
 
-func NewSynkClient(baseURL, apiKey, secretKey string) *SynkClient {
-	return &SynkClient{
+func NewUnbxClient(baseURL, apiKey, secretKey string) *UnbxClient {
+	return &UnbxClient{
 		baseURL:   baseURL,
 		apiKey:    apiKey,
 		secretKey: secretKey,
@@ -34,7 +34,7 @@ func NewSynkClient(baseURL, apiKey, secretKey string) *SynkClient {
 
 // signRequest adds HMAC authentication headers to the request.
 // Signature = HMAC-SHA256(api_key + "." + timestamp, secret_key)
-func (c *SynkClient) signRequest(req *http.Request) {
+func (c *UnbxClient) signRequest(req *http.Request) {
 	if c.apiKey == "" || c.secretKey == "" {
 		return
 	}
@@ -44,12 +44,12 @@ func (c *SynkClient) signRequest(req *http.Request) {
 	mac.Write([]byte(message))
 	sig := hex.EncodeToString(mac.Sum(nil))
 
-	req.Header.Set("X-Synk-Api-Key", c.apiKey)
-	req.Header.Set("X-Synk-Timestamp", ts)
-	req.Header.Set("X-Synk-Signature", sig)
+	req.Header.Set("X-Unbx-Api-Key", c.apiKey)
+	req.Header.Set("X-Unbx-Timestamp", ts)
+	req.Header.Set("X-Unbx-Signature", sig)
 }
 
-func (c *SynkClient) BulkScan(ctx context.Context, scanRequest *models.BulkScanRequest) (*models.BulkScanResponse, error) {
+func (c *UnbxClient) BulkScan(ctx context.Context, scanRequest *models.BulkScanRequest) (*models.BulkScanResponse, error) {
 	reqBytes, err := json.Marshal(scanRequest)
 	if err != nil {
 		return nil, fmt.Errorf("failed to serialize: %w", err)

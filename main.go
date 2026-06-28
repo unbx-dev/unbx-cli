@@ -3,9 +3,9 @@ package main
 import (
 	"context"
 	"fmt"
-	"synk/client"
-	"synk/models"
-	"synk/utils"
+	"unbx/client"
+	"unbx/models"
+	"unbx/utils"
 	"log"
 	"os"
 
@@ -16,7 +16,7 @@ func main() {
 	repositoryID := os.Getenv("REPOSITORY_ID")
 	accessToken := os.Getenv("ACCESS_TOKEN")
 	secretToken := os.Getenv("SECRET_TOKEN")
-	commitSHA := os.Getenv("SYNK_COMMIT_SHA")
+	commitSHA := os.Getenv("UNBX_COMMIT_SHA")
 	githubToken := os.Getenv("GITHUB_TOKEN")
 	repoSlug := os.Getenv("REPO_SLUG")
 	prNumber := os.Getenv("PR_NUMBER")
@@ -69,14 +69,14 @@ func main() {
 	}
 
 	reviewPayload := models.GitHubReviewRequest{
-		Body:     fmt.Sprintf("### 🧪 Synk Code Quarantine\nDetected %d architecture policy violation(s). Suggested fixes are listed below.", len(scanResponse.Violations)),
+		Body:     fmt.Sprintf("### 🧪 Unbx Code Quarantine\nDetected %d architecture policy violation(s). Suggested fixes are listed below.", len(scanResponse.Violations)),
 		Event:    "COMMENT", // Leave as a comment review without approving
 		CommitID: commitSHA,
 		Comments: make([]models.GitHubDraftComment, 0, len(scanResponse.Violations)),
 	}
 	for _, violation := range scanResponse.Violations {
 		commentBody := fmt.Sprintf(
-			"### 🚨 Synk Quarantine Alert: [%s]\n%s\n\n```suggestion\n%s\n```",
+			"### 🚨 Unbx Quarantine Alert: [%s]\n%s\n\n```suggestion\n%s\n```",
 			violation.RuleTitle,
 			violation.Message,
 			violation.SuggestedFix,

@@ -1,4 +1,4 @@
-module synk
+module unbx
 
 go 1.23
 

@@ -1,6 +1,6 @@
-name: Synk Code Quarantine
+name: Unbx Code Quarantine
 description: Scan PR diffs for architecture policy violations and post inline fix suggestions as review comments.
-author: Synk
+author: Unbx
 
 branding:
   icon: shield
@@ -8,24 +8,41 @@ branding:
 
 inputs:
   access_token:
-    description: Synk API key (ACCESS_TOKEN). Store this in GitHub Secrets.
+    description: Unbx API key (ACCESS_TOKEN). Store this in GitHub Secrets.
     required: true
   secret_token:
-    description: Synk secret key (SECRET_TOKEN). Store this in GitHub Secrets.
+    description: Unbx secret key (SECRET_TOKEN). Store this in GitHub Secrets.
     required: true
   github_token:
     description: GitHub token used to post review comments. Defaults to the built-in GITHUB_TOKEN.
     required: false
     default: ${{ github.token }}
+  api_url:
+    description: Backend API base URL. Defaults to the production endpoint.
+    required: false
+    default: https://qa.api.unbx.dev
+  repository_id:
+    description: GitHub repository ID (${{ github.repository_id }} in your workflow).
+    required: true
+  repository:
+    description: GitHub repository slug (owner/repo) (${{ github.repository }} in your workflow).
+    required: true
+  sha:
+    description: Pull request head SHA (${{ github.event.pull_request.head.sha }} in your workflow).
+    required: true
+  pr_number:
+    description: Pull request number (${{ github.event.pull_request.number }} in your workflow).
+    required: true
 
 runs:
   using: docker
   image: Dockerfile
   env:
-    REPOSITORY_ID: ${{ github.repository_id }}
+    REPOSITORY_ID: ${{ inputs.repository_id }}
     ACCESS_TOKEN: ${{ inputs.access_token }}
     SECRET_TOKEN: ${{ inputs.secret_token }}
     GITHUB_TOKEN: ${{ inputs.github_token }}
-    REPO_SLUG: ${{ github.repository }}
-    SYNK_COMMIT_SHA: ${{ github.event.pull_request.head.sha }}
-    PR_NUMBER: ${{ github.event.pull_request.number }}
+    REPO_SLUG: ${{ inputs.repository }}
+    UNBX_COMMIT_SHA: ${{ inputs.sha }}
+    PR_NUMBER: ${{ inputs.pr_number }}
+    UNBX_API_URL: ${{ inputs.api_url }}

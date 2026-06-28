@@ -2,8 +2,8 @@ package client
 
 import (
 	"context"
-	"synk/models"
-	"synk/utils"
+	"unbx/models"
+	"unbx/utils"
 )
 
 func GetPRFiles(ctx context.Context, githubToken string, repoSlug string, prNumber string) ([]models.PRFileDiff, error) {

@@ -20,7 +20,7 @@ type AnonymizedNode struct {
 }
 
 // Salt for making proprietary source code irreversible (ideally sourced from an env var)
-const anonymizeSalt = "synk-secure-salt-2026"
+const anonymizeSalt = "unbx-secure-salt-2026"
 
 type CodeSerializer struct {
 }

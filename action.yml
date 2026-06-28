@@ -22,16 +22,16 @@ inputs:
     required: false
     default: https://qa.api.unbx.dev
   repository_id:
-    description: GitHub repository ID (${{ github.repository_id }} in your workflow).
+    description: GitHub repository ID (github.repository_id in your workflow).
     required: true
   repository:
-    description: GitHub repository slug (owner/repo) (${{ github.repository }} in your workflow).
+    description: GitHub repository slug (owner/repo) (github.repository in your workflow).
     required: true
   sha:
-    description: Pull request head SHA (${{ github.event.pull_request.head.sha }} in your workflow).
+    description: Pull request head SHA (github.event.pull_request.head.sha in your workflow).
     required: true
   pr_number:
-    description: Pull request number (${{ github.event.pull_request.number }} in your workflow).
+    description: Pull request number (github.event.pull_request.number in your workflow).
     required: true
 
 runs:

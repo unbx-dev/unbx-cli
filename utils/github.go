@@ -77,7 +77,7 @@ func (c *GithubClient) PrSuggest(ctx context.Context, prNumber string, payload m
 	}
 
 	req.Header.Set("Authorization", "token "+c.githubToken)
-	req.Header.Set("Accept", "application/vnd.github.v3+json")
+	req.Header.Set("Accept", "application/vnd.github.comfort-fade-preview+json")
 	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := c.httpClient.Do(req)

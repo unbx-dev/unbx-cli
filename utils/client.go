@@ -8,10 +8,12 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	"unbx/models"
+	"io"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
+	"unbx/models"
 )
 
 type UnbxClient struct {
@@ -68,7 +70,8 @@ func (c *UnbxClient) BulkScan(ctx context.Context, scanRequest *models.BulkScanR
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("API error. Status code: %d", resp.StatusCode)
+		body, _ := io.ReadAll(resp.Body)
+		return nil, fmt.Errorf("API error. Status code: %d, body: %s", resp.StatusCode, strings.TrimSpace(string(body)))
 	}
 	var scanResponse models.BulkScanResponse
 	if err := json.NewDecoder(resp.Body).Decode(&scanResponse); err != nil {

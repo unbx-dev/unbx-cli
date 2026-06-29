@@ -105,33 +105,50 @@ func (c *GithubClient) GetPRFiles(ctx context.Context, prNumber string) ([]model
 
 // PrSuggest posts a batch review to the PR and returns whether violations were found.
 // Callers are responsible for exiting with a non-zero code when this returns true.
+// Retries up to 3 times on secondary rate limit (403), honoring Retry-After header.
 func (c *GithubClient) PrSuggest(ctx context.Context, prNumber string, payload models.GitHubReviewRequest, violationCount int) (hasViolations bool) {
 	reqBytes, _ := json.Marshal(payload)
-
-	// POST /repos/{owner}/{repo}/pulls/{pull_number}/reviews
 	endpoint := fmt.Sprintf("https://api.github.com/repos/%s/pulls/%s/reviews", c.repoSlug, prNumber)
 
-	req, err := http.NewRequestWithContext(ctx, "POST", endpoint, bytes.NewBuffer(reqBytes))
-	if err != nil {
-		log.Fatalf("❌ Failed to create request: %v", err)
-	}
+	const maxRetries = 3
+	for attempt := 1; attempt <= maxRetries; attempt++ {
+		req, err := http.NewRequestWithContext(ctx, "POST", endpoint, bytes.NewBuffer(reqBytes))
+		if err != nil {
+			log.Fatalf("❌ Failed to create request: %v", err)
+		}
+		req.Header.Set("Authorization", "token "+c.githubToken)
+		req.Header.Set("Accept", "application/vnd.github.comfort-fade-preview+json")
+		req.Header.Set("Content-Type", "application/json")
 
-	req.Header.Set("Authorization", "token "+c.githubToken)
-	req.Header.Set("Accept", "application/vnd.github.comfort-fade-preview+json")
-	req.Header.Set("Content-Type", "application/json")
+		resp, err := c.httpClient.Do(req)
+		if err != nil {
+			log.Fatalf("❌ Failed to send batch review to GitHub: %v", err)
+		}
 
-	resp, err := c.httpClient.Do(req)
-	if err != nil {
-		log.Fatalf("❌ Failed to send batch review to GitHub: %v", err)
-	}
-	defer resp.Body.Close()
+		if resp.StatusCode == http.StatusOK || resp.StatusCode == http.StatusCreated {
+			resp.Body.Close()
+			fmt.Printf("✨ Success! Posted %d fix suggestion(s) to the PR.\n", violationCount)
+			return true
+		}
 
-	if resp.StatusCode == http.StatusOK || resp.StatusCode == http.StatusCreated {
-		fmt.Printf("✨ Success! Posted %d fix suggestion(s) to the PR in a single request.\n", violationCount)
-	} else {
 		body, _ := io.ReadAll(resp.Body)
+		resp.Body.Close()
+
+		if resp.StatusCode == http.StatusForbidden && attempt < maxRetries {
+			wait := 60 * time.Second
+			if ra := resp.Header.Get("Retry-After"); ra != "" {
+				if secs, err := strconv.Atoi(ra); err == nil && secs > 0 {
+					wait = time.Duration(secs) * time.Second
+				}
+			}
+			log.Printf("⚠️  Secondary rate limit hit (attempt %d/%d). Retrying in %v...", attempt, maxRetries, wait)
+			time.Sleep(wait)
+			continue
+		}
+
 		log.Fatalf("❌ GitHub API returned an error for the batch review. Status: %d\nResponse: %s", resp.StatusCode, string(body))
 	}
 
-	return true
+	log.Fatalf("❌ Exhausted %d retries due to GitHub secondary rate limit.", maxRetries)
+	return false
 }

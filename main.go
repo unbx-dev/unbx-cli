@@ -102,15 +102,25 @@ func main() {
 		comments = append(comments, comment)
 	}
 
-	reviewPayload := models.GitHubReviewRequest{
-		Body:     fmt.Sprintf("### 🧪 Unbx Code Quarantine\nDetected %d architecture policy violation(s). Suggested fixes are listed below.", len(scanResponse.Violations)),
-		Event:    "COMMENT",
-		CommitID: commitSHA,
-		Comments: comments,
+	const chunkSize = 10
+	totalViolations := len(scanResponse.Violations)
+	for i := 0; i < len(comments); i += chunkSize {
+		end := i + chunkSize
+		if end > len(comments) {
+			end = len(comments)
+		}
+		body := ""
+		if i == 0 {
+			body = fmt.Sprintf("### 🧪 Unbx Code Quarantine\nDetected %d architecture policy violation(s). Suggested fixes are listed below.", totalViolations)
+		}
+		reviewPayload := models.GitHubReviewRequest{
+			Body:     body,
+			Event:    "COMMENT",
+			CommitID: commitSHA,
+			Comments: comments[i:end],
+		}
+		client.PrSuggest(ctx, reviewPayload, githubToken, repoSlug, len(comments[i:end]), prNumber)
 	}
-
-	if client.PrSuggest(ctx, reviewPayload, githubToken, repoSlug, len(scanResponse.Violations), prNumber) {
-		// Fail the CI pipeline when violations are found
-		os.Exit(1)
-	}
+	// Fail the CI pipeline when violations are found
+	os.Exit(1)
 }

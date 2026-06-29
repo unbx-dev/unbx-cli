@@ -68,13 +68,21 @@ func main() {
 		os.Exit(0)
 	}
 
-	reviewPayload := models.GitHubReviewRequest{
-		Body:     fmt.Sprintf("### 🧪 Unbx Code Quarantine\nDetected %d architecture policy violation(s). Suggested fixes are listed below.", len(scanResponse.Violations)),
-		Event:    "COMMENT", // Leave as a comment review without approving
-		CommitID: commitSHA,
-		Comments: make([]models.GitHubDraftComment, 0, len(scanResponse.Violations)),
+	// Build a set of valid diff line numbers per file so we only post inline
+	// comments on lines that actually appear in the PR diff. GitHub returns 422
+	// "Line could not be resolved" for any line outside the diff hunks.
+	validDiffLines := make(map[string]map[int]bool, len(changeFiles))
+	for _, f := range changeFiles {
+		validDiffLines[f.Path] = utils.ParseDiffValidLines(f.PatchCode)
 	}
+
+	comments := make([]models.GitHubDraftComment, 0, len(scanResponse.Violations))
 	for _, violation := range scanResponse.Violations {
+		fileLines, ok := validDiffLines[violation.FilePath]
+		if !ok || !fileLines[violation.EndLine] {
+			// EndLine is not in the diff — skip to avoid 422
+			continue
+		}
 		commentBody := fmt.Sprintf(
 			"### 🚨 Unbx Quarantine Alert: [%s]\n%s\n\n```suggestion\n%s\n```",
 			violation.RuleTitle,
@@ -87,11 +95,18 @@ func main() {
 			Line: violation.EndLine,
 			Side: "RIGHT",
 		}
-		if violation.StartLine < violation.EndLine {
+		if violation.StartLine > 0 && violation.StartLine < violation.EndLine && fileLines[violation.StartLine] {
 			comment.StartLine = violation.StartLine
 			comment.StartSide = "RIGHT"
 		}
-		reviewPayload.Comments = append(reviewPayload.Comments, comment)
+		comments = append(comments, comment)
+	}
+
+	reviewPayload := models.GitHubReviewRequest{
+		Body:     fmt.Sprintf("### 🧪 Unbx Code Quarantine\nDetected %d architecture policy violation(s). Suggested fixes are listed below.", len(scanResponse.Violations)),
+		Event:    "COMMENT",
+		CommitID: commitSHA,
+		Comments: comments,
 	}
 
 	if client.PrSuggest(ctx, reviewPayload, githubToken, repoSlug, len(scanResponse.Violations), prNumber) {

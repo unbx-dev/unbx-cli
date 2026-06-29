@@ -10,10 +10,10 @@ type GitHubReviewRequest struct {
 type GitHubDraftComment struct {
 	Path      string `json:"path"`
 	Body      string `json:"body"` // Markdown containing ```suggestion
-	StartLine int    `json:"start_line"`
+	StartLine int    `json:"start_line,omitempty"`
 	Line      int    `json:"line"`       // end line
 	Side      string `json:"side"`       // always "RIGHT"
-	StartSide string `json:"start_side"` // always "RIGHT"
+	StartSide string `json:"start_side,omitempty"`
 }
 
 type PRFileDiff struct {

@@ -81,14 +81,17 @@ func main() {
 			violation.Message,
 			violation.SuggestedFix,
 		)
-		reviewPayload.Comments = append(reviewPayload.Comments, models.GitHubDraftComment{
-			Path:      violation.FilePath,
-			Body:      commentBody,
-			StartLine: violation.StartLine,
-			Line:      violation.EndLine,
-			Side:      "RIGHT",
-			StartSide: "RIGHT",
-		})
+		comment := models.GitHubDraftComment{
+			Path: violation.FilePath,
+			Body: commentBody,
+			Line: violation.EndLine,
+			Side: "RIGHT",
+		}
+		if violation.StartLine < violation.EndLine {
+			comment.StartLine = violation.StartLine
+			comment.StartSide = "RIGHT"
+		}
+		reviewPayload.Comments = append(reviewPayload.Comments, comment)
 	}
 
 	if client.PrSuggest(ctx, reviewPayload, githubToken, repoSlug, len(scanResponse.Violations), prNumber) {

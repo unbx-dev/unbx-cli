@@ -5,10 +5,11 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"unbx/models"
+	"io"
 	"log"
 	"net/http"
 	"time"
+	"unbx/models"
 )
 
 type GithubClient struct {
@@ -88,7 +89,8 @@ func (c *GithubClient) PrSuggest(ctx context.Context, prNumber string, payload m
 	if resp.StatusCode == http.StatusOK || resp.StatusCode == http.StatusCreated {
 		fmt.Printf("✨ Success! Posted %d fix suggestion(s) to the PR in a single request.\n", violationCount)
 	} else {
-		log.Fatalf("❌ GitHub API returned an error for the batch review. Status: %d", resp.StatusCode)
+		body, _ := io.ReadAll(resp.Body)
+		log.Fatalf("❌ GitHub API returned an error for the batch review. Status: %d\nResponse: %s", resp.StatusCode, string(body))
 	}
 
 	return true

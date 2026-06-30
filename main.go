@@ -77,12 +77,21 @@ func main() {
 			// EndLine is not in the diff — skip to avoid 422
 			continue
 		}
-		commentBody := fmt.Sprintf(
-			"### 🚨 Unbx Quarantine Alert: [%s]\n%s\n\n```suggestion\n%s\n```",
-			violation.RuleTitle,
-			violation.Message,
-			violation.SuggestedFix,
-		)
+		var commentBody string
+		if violation.SuggestedFix != "" {
+			commentBody = fmt.Sprintf(
+				"### 🚨 Unbx Quarantine Alert: [%s]\n%s\n\n```suggestion\n%s\n```",
+				violation.RuleTitle,
+				violation.Message,
+				violation.SuggestedFix,
+			)
+		} else {
+			commentBody = fmt.Sprintf(
+				"### 🚫 Unbx Quarantine Alert: [%s]\n%s",
+				violation.RuleTitle,
+				violation.Message,
+			)
+		}
 		comment := models.GitHubDraftComment{
 			Path: violation.FilePath,
 			Body: commentBody,

@@ -6,9 +6,9 @@ type BulkScanRequest struct {
 }
 
 type FilePayload struct {
-	Path          string `json:"path"`
-	AnonymizedAST string `json:"anonymized_ast"`
-	LangName      string `json:"lang_name"`
+	Path            string `json:"path"`
+	EncryptedSource string `json:"encrypted_source"`
+	LangName        string `json:"lang_name"`
 }
 
 type BulkScanResponse struct {

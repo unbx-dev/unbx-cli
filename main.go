@@ -3,13 +3,11 @@ package main
 import (
 	"context"
 	"fmt"
+	"log"
+	"os"
 	"unbx/client"
 	"unbx/models"
 	"unbx/utils"
-	"log"
-	"os"
-
-	sitter "github.com/smacker/go-tree-sitter"
 )
 
 func main() {
@@ -32,29 +30,25 @@ func main() {
 		log.Fatal("Failed to fetch PR files:", err)
 	}
 
-	parser := sitter.NewParser()
-
 	scanRequest := models.BulkScanRequest{
 		GithubRepositoryID: repositoryID,
 	}
 	for _, fileDiff := range changeFiles {
-		lang, langName := utils.LanguageForFile(fileDiff.Path)
-		if lang == nil {
+		langName := utils.LangNameForFile(fileDiff.Path)
+		if langName == "" {
 			continue
 		}
-		parser.SetLanguage(lang)
 
 		sourceBytes := []byte(fileDiff.PatchCode)
-		tree, _ := parser.ParseCtx(ctx, nil, sourceBytes)
-		rootNode := tree.RootNode()
-
-		// Hash identifiers and extract structure only — never send raw source code
-		anonymizedAST := utils.NewCodeSerializer().SerializeAndAnonymize(rootNode, sourceBytes)
+		encryptedSource, err := utils.EncryptSource(sourceBytes, secretToken)
+		if err != nil {
+			log.Fatalf("Failed to encrypt %s: %v", fileDiff.Path, err)
+		}
 
 		scanRequest.Files = append(scanRequest.Files, models.FilePayload{
-			Path:          fileDiff.Path,
-			AnonymizedAST: anonymizedAST,
-			LangName:      langName,
+			Path:            fileDiff.Path,
+			EncryptedSource: encryptedSource,
+			LangName:        langName,
 		})
 	}
 

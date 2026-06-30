@@ -3,49 +3,37 @@ package utils
 import (
 	"path/filepath"
 	"strings"
-
-	sitter "github.com/smacker/go-tree-sitter"
-	"github.com/smacker/go-tree-sitter/bash"
-	"github.com/smacker/go-tree-sitter/c"
-	"github.com/smacker/go-tree-sitter/cpp"
-	"github.com/smacker/go-tree-sitter/golang"
-	"github.com/smacker/go-tree-sitter/java"
-	"github.com/smacker/go-tree-sitter/javascript"
-	"github.com/smacker/go-tree-sitter/php"
-	"github.com/smacker/go-tree-sitter/python"
-	"github.com/smacker/go-tree-sitter/ruby"
-	"github.com/smacker/go-tree-sitter/rust"
-	"github.com/smacker/go-tree-sitter/typescript/tsx"
-	"github.com/smacker/go-tree-sitter/typescript/typescript"
 )
 
-func LanguageForFile(path string) (*sitter.Language, string) {
+// LangNameForFile returns the language name for the given file path,
+// or an empty string if the language is not supported.
+func LangNameForFile(path string) string {
 	switch strings.ToLower(filepath.Ext(path)) {
 	case ".go":
-		return golang.GetLanguage(), "go"
+		return "go"
 	case ".js", ".jsx", ".mjs", ".cjs":
-		return javascript.GetLanguage(), "javascript"
+		return "javascript"
 	case ".ts":
-		return typescript.GetLanguage(), "typescript"
+		return "typescript"
 	case ".tsx":
-		return tsx.GetLanguage(), "tsx"
+		return "tsx"
 	case ".py":
-		return python.GetLanguage(), "python"
+		return "python"
 	case ".rb":
-		return ruby.GetLanguage(), "ruby"
+		return "ruby"
 	case ".rs":
-		return rust.GetLanguage(), "rust"
+		return "rust"
 	case ".java":
-		return java.GetLanguage(), "java"
+		return "java"
 	case ".php":
-		return php.GetLanguage(), "php"
+		return "php"
 	case ".c", ".h":
-		return c.GetLanguage(), "c"
+		return "c"
 	case ".cpp", ".cc", ".cxx", ".hpp":
-		return cpp.GetLanguage(), "cpp"
+		return "cpp"
 	case ".sh", ".bash":
-		return bash.GetLanguage(), "bash"
+		return "bash"
 	default:
-		return nil, ""
+		return ""
 	}
 }

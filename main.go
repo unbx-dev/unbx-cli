@@ -30,6 +30,23 @@ func main() {
 		log.Fatal("Failed to fetch PR files:", err)
 	}
 
+	// Strip diff markers so tree-sitter sees valid source code, and build a
+	// row→fileLine mapping per file to convert scan results to real line numbers.
+	type patchMeta struct {
+		cleanCode     string
+		validLines    map[int]bool
+		rowToFileLine []int
+	}
+	meta := make(map[string]patchMeta, len(changeFiles))
+	for _, f := range changeFiles {
+		clean, mapping := utils.StripPatch(f.PatchCode)
+		valid := make(map[int]bool, len(mapping))
+		for _, n := range mapping {
+			valid[n] = true
+		}
+		meta[f.Path] = patchMeta{cleanCode: clean, validLines: valid, rowToFileLine: mapping}
+	}
+
 	scanRequest := models.BulkScanRequest{
 		GithubRepositoryID: repositoryID,
 	}
@@ -39,8 +56,7 @@ func main() {
 			continue
 		}
 
-		sourceBytes := []byte(fileDiff.PatchCode)
-		encryptedSource, err := utils.EncryptSource(sourceBytes, secretToken)
+		encryptedSource, err := utils.EncryptSource([]byte(meta[fileDiff.Path].cleanCode), secretToken)
 		if err != nil {
 			log.Fatalf("Failed to encrypt %s: %v", fileDiff.Path, err)
 		}
@@ -62,12 +78,17 @@ func main() {
 		os.Exit(0)
 	}
 
-	// Build a set of valid diff line numbers per file so we only post inline
-	// comments on lines that actually appear in the PR diff. GitHub returns 422
-	// "Line could not be resolved" for any line outside the diff hunks.
+	// Convert scan row numbers (relative to clean source) to actual file line numbers.
+	for i := range scanResponse.Violations {
+		v := &scanResponse.Violations[i]
+		m := meta[v.FilePath].rowToFileLine
+		v.StartLine = utils.PatchRowToFileLine(v.StartLine, m)
+		v.EndLine = utils.PatchRowToFileLine(v.EndLine, m)
+	}
+
 	validDiffLines := make(map[string]map[int]bool, len(changeFiles))
-	for _, f := range changeFiles {
-		validDiffLines[f.Path] = utils.ParseDiffValidLines(f.PatchCode)
+	for path, m := range meta {
+		validDiffLines[path] = m.validLines
 	}
 
 	comments := make([]models.GitHubDraftComment, 0, len(scanResponse.Violations))

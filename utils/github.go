@@ -9,48 +9,9 @@ import (
 	"log"
 	"net/http"
 	"strconv"
-	"strings"
 	"time"
 	"unbx/models"
 )
-
-// ParseDiffValidLines returns the set of new-file line numbers present in the
-// unified diff patch (both context lines and added lines). GitHub's review API
-// rejects comments on lines that do not appear in any diff hunk.
-func ParseDiffValidLines(patch string) map[int]bool {
-	valid := make(map[int]bool)
-	newLine := 0
-	for _, line := range strings.Split(patch, "\n") {
-		if strings.HasPrefix(line, "@@ ") {
-			// Parse "+new_start[,count]" from "@@ -old +new @@ ..."
-			newLine = 0
-			for _, field := range strings.Fields(line) {
-				if strings.HasPrefix(field, "+") {
-					ns := strings.TrimPrefix(field, "+")
-					if idx := strings.Index(ns, ","); idx >= 0 {
-						ns = ns[:idx]
-					}
-					if n, err := strconv.Atoi(ns); err == nil {
-						newLine = n
-					}
-					break
-				}
-			}
-			continue
-		}
-		if newLine == 0 {
-			continue
-		}
-		switch {
-		case strings.HasPrefix(line, "-"):
-			// removed line: only in old file, don't advance new-file counter
-		case strings.HasPrefix(line, "+"), strings.HasPrefix(line, " "):
-			valid[newLine] = true
-			newLine++
-		}
-	}
-	return valid
-}
 
 type GithubClient struct {
 	githubToken string
